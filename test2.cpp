@@ -4,11 +4,9 @@
 #include <algorithm>
 #include <map>
 using namespace std;
-const int INF = 0x7fffffff;
-int ans =  INF;
+int ans =  0x7fffffff;
 int mask = 0x00000007;
 
-map<int,int> m;
 int getnum(int i,int status){
 	return (status >> (i * 3)) & mask;
 }
@@ -17,12 +15,13 @@ int getnstatus(int i,int num,int status){
 	return status & ~(mask << (i * 3)) | num << (i*3);
 }
 
-int dfs(int status){
+void dfs(int status,int deep){
+	if(ans <= deep) return;
 	if(status ==  0){
-		return 0;
+		ans = min(ans,deep);
+		return;
 	}
-	if(m.count(status)) return m[status];
-	m[status] = INF;
+
 	//连对
 	for(int i=0;i<8;i++){
 		int num1,num2,num3;
@@ -33,8 +32,7 @@ int dfs(int status){
 			int s1 = getnstatus(i,num1-2,status);
 			int s2 = getnstatus(i+1,num2-2,s1);
 			int s3 = getnstatus(i+2,num3-2,s2);
-			dfs(s3);
-			m[status] = min (m[status],m[s3] + 1);
+			dfs(s3,deep + 1);
 		}
 	} 
 	//顺子
@@ -51,29 +49,23 @@ int dfs(int status){
 			int s3 = getnstatus(i+2,num3-1,s2);
 			int s4 = getnstatus(i+3,num4-1,s3);
 			int s5 = getnstatus(i+4,num5-1,s4);
-			dfs(s5);
-			m[status] = min (m[status],m[s5] + 1);
+			dfs(s5,deep + 1);
 		}
 	} 
 	//对子
 	for(int i=0;i<10;i++){
 		int num = getnum(i,status);
 		if(num >= 2){
-			int s1 = getnstatus(i,num-2,status);
-			dfs(s1);
-			m[status] = min (m[status],m[s1] + 1);
+			dfs(getnstatus(i,num-2,status),deep+1);
 		}
 	} 
 	//单张 
 	for(int i=0;i<10;i++){
 		int num = getnum(i,status);
 		if(num >= 1){
-			int s1 = getnstatus(i,num-1,status);
-			dfs(s1);
-			m[status] = min (m[status],m[s1] + 1);
+			dfs(getnstatus(i,num-1,status),deep+1);
 		}
 	} 
-	return m[status];
 }
 int main(){
 	
@@ -83,6 +75,7 @@ int main(){
 		cin >> a;
 		status |= a << (i*3);
 	}
-	cout << dfs(status) << endl;
+	dfs(status,0);
+	cout << ans << endl;
     return 0;
 }
